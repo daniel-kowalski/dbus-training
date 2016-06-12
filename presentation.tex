@@ -1,0 +1,302 @@
+\documentclass{beamer}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{tabulary}
+\usetheme{Warsaw}
+\title[Introducion to d-bus]{Introducion to DBus}
+\author{Daniel Kowalski}
+\date{}
+
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\AtBeginSection[]
+{
+   \begin{frame}
+        \tableofcontents[currentsection,currentsubsection]
+   \end{frame}
+}
+
+\begin{frame}{Some info}
+Where can you find presentation:\\
+License:\\
+
+WTFPL v2
+\end{frame}
+
+\begin{frame}
+  \tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}{What is dbus}
+  \begin{itemize}
+    \item IPC (Inter-Process Communication) and RPC (Remote Procedure Calling) system
+    \item messages based
+    \item high level
+    \item centralized (bus) - one central "messages router"
+    \item language independent
+    \item service-client architecture
+  \end{itemize}
+  \vfill
+  \begin{exampleblock}{some useful links}
+    \begin{small}
+      \url{https://www.freedesktop.org/wiki/Software/dbus}\\
+      \url{https://www.freedesktop.org/wiki/IntroductionToDBus}\\
+      \url{https://pythonhosted.org/txdbus/dbus\_overview.html}\\
+      \url{https://dbus.freedesktop.org/doc/dbus-faq.html}\\
+      \url{https://dbus.freedesktop.org/doc/dbus-specification.html}\\
+    \end{small}  
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Where it is used}
+  \begin{itemize}
+    \item udev
+    \item HAL (Hardware abstraction layer)
+    \item Skype
+    \item Pidgin
+    \item VLC
+    \item CUPS
+  \end{itemize}
+  \vfill
+  \begin{exampleblock}{more examples}
+    \begin{small}
+      \url{https://www.freedesktop.org/wiki/Software/DbusProjects}
+    \end{small}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{DBus bus types}
+Most of Linux distributions use two dbus bus instances (call also "types"):
+  \begin{itemize}
+    \item SYSTEM\_BUS - only one for whole system
+    \item SESSION\_BUS - one for each user session
+  \end{itemize}
+  And there is no problem with spawning custom bus :).
+\end{frame}
+
+\section{Architecture}
+
+\begin{frame}{Bus and some clients}
+Names (sometimes called addresses):
+  \begin{itemize}
+    \item unique-id - mandatory for all clients, given by bus while connections established
+    \item well-known-name - mandatory only for processes which wants to export objects (services), requested by clients
+  \end{itemize}
+  \begin{center}
+    \includegraphics[scale=0.4]{bus_clients.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Sevice internal structure (1)}
+  \begin{center}
+    \includegraphics[scale=0.4]{service_full.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Sevice internal structure (2)}
+\begin{huge}
+- name 
+\begin{normalsize}
+-unique id and well-known-name\\
+\end{normalsize}
+\hspace{1cm}- object (path)\\
+\hspace{2cm}- interface\\
+\hspace{3cm}- method\\
+\hspace{3cm}- signal\\
+\hspace{3cm}- property\\
+\end{huge}
+\end{frame}
+
+\begin{frame}{Members types}
+  \begin{itemize}
+    \item method - is a function called by client on the service side
+    \item signal - is information emitted by service to clients (client will not get signal until it register for it)
+    \item property - is data field of service (read/write)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sevice internal structure (3)}
+  \begin{center}
+    \begin{tiny}
+      \begin{tabulary}{1.0\textwidth}{|L|L|L|L|}
+\hline
+A... & is identified by a(n)... & which looks like... & and is chosen by...\\
+\hline
+\hline
+bus & address & unix:path= /var/run/dbus/system\_bus\_socket & system configuration\\
+\hline
+connection & bus name & :1.34 (unique) or com.example.Audio (well-known) & D-Bus (unique) or the owning program (well-known)\\
+\hline
+object & path & /com/example/Audio & the owning program\\
+\hline
+interface & interface name & com.example.Audio.Master & the owning program\\
+\hline
+member & member name & AddPlayer & the owning program\\
+\hline
+      \end{tabulary}
+    \end{tiny}
+  \end{center}
+\end{frame}
+
+\begin{frame}{From system POV (1)}
+  \begin{block}{}
+    dbus-daemon - process representin dbus bus
+  \end{block}
+  \begin{center}
+    \includegraphics[scale=0.35]{daemon_with_clients.png}
+  \end{center}
+  \url{https://dbus.freedesktop.org/doc/diagram.png}
+\end{frame}
+
+\begin{frame}{From system POV (2)}
+  \begin{block}{A little conclusion...}
+    \begin{large}
+      DBus is introducing all these fancy abstraction like names, objects, interfaces, methods, etc, which are very helpful for developers (probably all dbus bindings are using them), but it is all sending and receiving messages (data packets) "under the hood".
+    \end{large}
+  \end{block}
+\end{frame}
+
+\begin{frame}{DBus types (1)}
+  \begin{center}
+    \begin{normalsize}
+      \begin{tabulary}{1.0\textwidth}{|C|L|}
+\hline
+Character & Code Data Type\\
+\hline
+\hline
+y & 8-bit unsigned integer\\
+\hline
+b & boolean value\\
+\hline
+n & 16-bit signed integer\\
+\hline
+q & 16-bit unsigned integer\\
+\hline
+i & 32-bit signed integer\\
+\hline
+u & 32-bit unsigned integer\\
+\hline
+x & 64-bit signed integer\\
+\hline\
+t & 64-bit unsigned integer\\
+\hline
+d & double-precision floating point (IEEE 754)\\
+\hline
+s & UTF-8 string (no embedded nul characters)\\
+\hline
+      \end{tabulary}
+    \end{normalsize}
+  \end{center}
+\end{frame}
+
+\begin{frame}{DBus types (2)}
+  \begin{center}
+    \begin{normalsize}
+      \begin{tabulary}{1.0\textwidth}{|C|L|}
+\hline
+Character & Code Data Type\\
+\hline
+\hline
+o & D-Bus Object Path string\\
+\hline
+g & D-Bus Signature string\\
+\hline
+a & Array\\
+\hline
+() & Structure\\
+\hline
+v & Variant type\\
+\hline
+\{\} & Dictionary/Map\\
+\hline
+h &Unix file descriptor\\
+\hline
+      \end{tabulary}
+    \end{normalsize}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Signatures}
+  \begin{itemize}
+    \item as - array of strins
+    \item ii - two integers 32bit
+    \item (isb) - stucture of integer, string and bool
+    \item a(si) - array of structs with string and int
+    \item a\{is\} - dictionary/map: int to string
+    \item a\{i(is)\} - map int to struct of int and string
+  \end{itemize}
+  \vfill
+  \pause
+  \begin{exampleblock}{And some exercises :)}
+    \begin{itemize}
+      \item ah
+      \item ((ib)(is))
+      \item a\{ia\{si\}\}
+    \end{itemize}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Methods vs Signals}
+\begin{tabulary}{1.0\textwidth}{|C|C|}
+\hline
+method & signal\\
+\hline
+\hline
+client is calling method on specific service side & service is "broadcasting" signal to unknown clients\\
+\hline
+1-to-1 communication & 1-to-many communication\\
+\hline
+reply can be send & no possibility of replying\\
+\hline
+\end{tabulary}
+\vfill
+\pause
+It will be waste of resources if dbus-daemon will propagate each signal to each client. If client want to get signal message, it needs to register for it with right "matching rule". If all components of the matching rule match message, it will be transported to client.
+\end{frame}
+
+\begin{frame}{Matching rules (1)}
+  \begin{center}
+    \includegraphics[scale=0.32]{matching_rules.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Matching rules (2)}
+\begin{block}{Wildcards}
+Omitting a key from the rule indicates a wildcard match
+\end{block}
+\vfill
+\pause
+  \begin{itemize}
+    \item "type='signal',sender='com.example.audio'"
+    \item "type='method\_return',destination=':1.34'"
+    \item "type='method\_call','com.example.audio'"
+    \item "arg0='qwerty'" - only string aruments can be match against!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+
+\begin{block}{Block title}
+This is a block in blue
+\end{block}
+
+\begin{alertblock}{Alert-block title}
+This is a block in red
+\end{alertblock}
+
+\begin{exampleblock}{Example-block title}
+This is a block in green
+\end{exampleblock}
+\end{frame}
+
+
+
+\end{document}

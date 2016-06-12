@@ -1,4 +1,4 @@
-PICS=final.png
+PICS=service_full.png bus_clients.png daemon_with_clients.png
 
 all: $(PICS)
 
@@ -7,3 +7,4 @@ clean:
 
 %.png: %.ditaa $(DEPS)
 	ditaa -E $< $@
+
