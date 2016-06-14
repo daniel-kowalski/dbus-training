@@ -3,10 +3,22 @@
 \usepackage{tabularx}
 \usepackage{tabulary}
 \usetheme{Warsaw}
-\title[Introducion to d-bus]{Introducion to DBus}
+\title[Introducion to DBus]{Introducion to DBus}
 \author{Daniel Kowalski}
 \date{}
 
+\defbeamertemplate*{footline}{shadow theme}{%
+\leavevmode%
+\hbox{\begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm plus1fil,rightskip=.3cm]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\hfill\insertshortauthor
+\end{beamercolorbox}%
+
+\begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hfill%
+\insertframenumber\,/\,\inserttotalframenumber
+\end{beamercolorbox}}%
+\vskip0pt%
+}
 
 
 \begin{document}
@@ -23,10 +35,17 @@
 }
 
 \begin{frame}{Some info}
-Where can you find presentation:\\
-License:\\
-
-WTFPL v2
+  \begin{block}{sources}
+    \url{https://github.com/daniel-kowalski/dbus-training.git}
+  \end{block}
+  \vfill
+  \begin{block}{license}
+    TBD - probably/for now: WTFPL v2
+  \end{block}
+  \vfill
+  \begin{block}{version}
+    @@@@@VERSION@@@@@
+  \end{block}
 \end{frame}
 
 \begin{frame}
@@ -44,7 +63,9 @@ WTFPL v2
     \item language independent
     \item service-client architecture
   \end{itemize}
-  \vfill
+\end{frame}
+
+\begin{frame}{Bibliography}
   \begin{exampleblock}{some useful links}
     \begin{small}
       \url{https://www.freedesktop.org/wiki/Software/dbus}\\
@@ -263,40 +284,240 @@ It will be waste of resources if dbus-daemon will propagate each signal to each 
 \end{frame}
 
 \begin{frame}{Matching rules (1)}
-  \begin{center}
-    \includegraphics[scale=0.32]{matching_rules.png}
-  \end{center}
+  \begin{small}
+    \begin{center}
+      \begin{tabulary}{1.0\textwidth}{|C|L|}
+\hline
+Key & Possible values\\
+\hline
+\hline
+type & 'signal', 'method\_call', 'method\_return', 'error'\\
+\hline
+sender & a well-known or unique name\\
+\hline
+interface & an interface name\\
+\hline
+member & 	any valid method or signal name\\
+\hline
+destination & a well-known or unique name\\
+\hline
+arg[0, 1, 2, 3, ...] & Any string (match against arguments of message, but only strings)\\
+\hline
+eavesdrop & 'true', 'false' (from BDus 1.5.6 match rule will match message with set 'destination' field only if eavesdrop='true')\\
+\hline
+      \end{tabulary}
+    \end{center}
+  \end{small} 
 \end{frame}
 
 \begin{frame}{Matching rules (2)}
-\begin{block}{Wildcards}
-Omitting a key from the rule indicates a wildcard match
-\end{block}
-\vfill
-\pause
+  \begin{block}{Wildcards}
+    Omitting a key from the rule indicates a wildcard match
+  \end{block}
+  \vfill
+  \pause
   \begin{itemize}
     \item "type='signal',sender='com.example.audio'"
     \item "type='method\_return',destination=':1.34'"
     \item "type='method\_call','com.example.audio'"
     \item "arg0='qwerty'" - only string aruments can be match against!
   \end{itemize}
+  \vfill
+  \begin{small}
+    \begin{exampleblock}{for all keys and more extensive info visit}  
+       \url{https://dbus.freedesktop.org/doc/dbus-specification.html} section 'Match Rules'\\
+    \end{exampleblock}
+  \end{small}
+\end{frame}
+
+\begin{frame}{Activation}
+dbus-daemon can start service process on demand (explicit or when first message to service will be send) when it is configured to do it. Service file need to have extension '.service' and be placed in service directory of specific bus (for SESSION\_BUS eg: '/usr/share/dbus-1/services' - system depending).
+\vfill
+  \begin{block}{example.service}
+  [D-BUS Service]\\
+  Name=com.example.Audio;com.some.other.name\\
+  Exec=/usr/bin/audio\\
+  \end{block}
+\end{frame}
+
+\begin{frame}{Standard interfaces (1)}
+  \begin{itemize}
+    \item org.freedesktop.DBus.Introspectable
+    \begin{itemize}
+      \item Introspect(out STRING xml\_data)
+    \end{itemize}
+    \item org.freedesktop.DBus.Properties
+    \begin{itemize}
+      \item Get(in STRING interface\_name, in STRING property\_name, out VARIANT value)
+      \item Set(in STRING interface\_name, in STRING property\_name, in VARIANT value)
+      \item GetAll(in STRING interface\_name, out DICT[STRING,VARIANT] props)
+      \item PropertiesChanged(STRING interface\_name, DICT[STRING,VARIANT] changed\_properties, ARRAY[STRING] invalidated\_properties) - signal
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Standard interfaces (2)}
+  \begin{itemize}
+  \item org.freedesktop.DBus.Peer
+    \begin{itemize}
+      \item Ping ()
+      \item GetMachineId(out STRING machine\_uuid)
+    \end{itemize}
+  \item org.freedesktop.DBus.ObjectManager    
+    \begin{itemize}
+      \item GetManagedObjects(out DICT[OBJPATH,DICT[STRING,DICT[STRING,VARIANT]]] objpath\_interfaces\_and\_properties)
+      \item InterfacesAdded(OBJPATH object\_path, DICT[STRING,DICT[STRING,VARIANT]] interfaces\_and\_properties) - signal
+      \item InterfacesRemoved(OBJPATH object\_path, ARRAY[STRING] interfaces) - signal                                                
+    \end{itemize}    
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bus service - org.fredesktop.DBus}
+  \begin{block}{org.freedesktop.DBus}
+  There is one special service on bus - org.freedesktop.DBus.\\
+  It is exposed by dbus-daemon itself.\\Can be used for:\\
+  \begin{itemize}
+    \item managing connections - communication with it is necessary for process to which want to use bus (usually hidden from developer by library/bidding)
+    \item getting information about bus state - eg. list of names, starting services, etc.
+    \item etc.
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{org.freedesktop.DBus - members (1)}
+  \begin{itemize}
+\item Hello(out s arg\_0);
+\item RequestName(in  s arg\_0,
+            in  u arg\_1,
+            out u arg\_2);
+\item ReleaseName(in  s arg\_0,
+            out u arg\_1);
+\item StartServiceByName(in  s arg\_0,
+                   in  u arg\_1,
+                   out u arg\_2);
+\item UpdateActivationEnvironment(in  a{ss} arg\_0);
+\item NameHasOwner(in  s arg\_0,
+             out b arg\_1);
+\item ListNames(out as arg\_0);
+\item ListActivatableNames(out as arg\_0);
+\item AddMatch(in  s arg\_0);
+\item RemoveMatch(in  s arg\_0);
+\item GetNameOwner(in  s arg\_0,
+             out s arg\_1);
+\item ListQueuedOwners(in  s arg\_0,
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{org.freedesktop.DBus - members (2)}
+  \begin{itemize}
+\item GetConnectionUnixUser(in  s arg\_0,
+                      out u arg\_1);
+\item GetConnectionUnixProcessID(in  s arg\_0,
+                           out u arg\_1);
+\item GetAdtAuditSessionData(in  s arg\_0,
+                       out ay arg\_1);
+\item GetConnectionSELinuxSecurityContext(in  s arg\_0,
+                                    out ay arg\_1);
+\item GetConnectionAppArmorSecurityContext(in  s arg\_0,
+                                     out s arg\_1);
+\item ReloadConfig();
+\item GetId(out s arg\_0);
+
+
+
+\item NameOwnerChanged(s arg\_0,
+                 s arg\_1,
+                 s arg\_2);
+\item NameLost(s arg\_0);
+\item NameAcquired(s arg\_0);
+  \end{itemize}
+\end{frame}
+
+\section{Using and debuging}
+
+\begin{frame}{Basic tools}
+  \begin{block}{dbus-send}
+    sends method calls and prints reply
+  \end{block}
+  \begin{block}{dbus-monitor}
+    eavesdrops method calls and signals
+  \end{block}
+  \begin{block}{gdbus}
+    sends method calls and signals, introspects, monitors
+  \end{block}
+  \begin{block}{and not so basic - d-feet}
+    gui tool which can be used as custom client (can not get signals)
+  \end{block}
+\end{frame}
+
+\begin{frame}{dbus-send}
+  \begin{itemize}
+    \item dbus-send -{}-session -{}-print-reply -{}-type=method\_call -{}-dest=org.freedesktop.DBus / org.freedesktop.DBus.ListNames
+    \item dbus-send -{}-session -{}-print-reply -{}-type=method\_call -{}-dest=org.freedesktop.DBus / org.freedesktop.DBus.GetConnectionUnixProcessID string:"org.gnome.ScreenSaver"
+    \item dbus-send -{}-system -{}-print-reply -{}-type=method\_call -{}-dest=org.freedesktop.UDisks2 /org/freedesktop/UDisks2/block\_devices/sda org.freedesktop.DBus.Properties.Get string:"org.freedesktop.UDisks2.Block" string:"Id"
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{dbus-monitor}
+  \begin{itemize}
+    \item dbus-monitor
+    \item dbus-monitor -{}-profile
+    \item dbus-monitor -{}-session type="method\_call",destination="org.guake.RemoteControl"
+    \item dbus-monitor -{}-session type="method\_call",destination="org.guake.RemoteControl",\\member='get\_selected\_tab' type="method\_return"
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{gdbus}
+  \begin{itemize}
+    \item gdbus introspect -{}-session -{}-dest org.guake.RemoteControl -{}-object-path /org/guake/RemoteControl
+    \item gdbus monitor -{}-session -{}-dest org.freedesktop.DBus
+    \item gdbus emit -{}-session -{}-object-path /ala/ma/kota -{}-signal ala.ma.kota.Mial "mial mial mial" 123
+    \item gdbus call -{}-session -{}-dest org.freedesktop.Notifications -{}-object-path /org/freedesktop/Notifications -{}-method org.freedesktop.Notifications.Notify dummy-app 42 gtk-dialog-info  "Summary" "Body" [] \{\} 1000
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Configuration}
+  \begin{itemize}
+    \item /etc/dbus-1
+    \item /usr/share/dbus-1
+    \item /etc/dbus-1/session.conf
+    \item /etc/dbus-1/system.conf
+    \item /usr/share/dbus-1/services/*.service
+    \item /usr/share/dbus-1/system-services/*.service
+    \item /usr/share/dbus-1/interfaces/*
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Config file}
+  \begin{itemize}
+    \item type
+    \item user
+    \item fork
+    \item listen
+    \item limit
+    \item policy
+  \end{itemize}
+  \hfill
+  \begin{exampleblock}{full doc}
+    \url{https://dbus.freedesktop.org/doc/dbus-daemon.1.html}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Polices}
+  \begin{itemize}
+    \item The 'policy' element defines a security policy to be applied to a particular set of connections to the bus. They are similar to firewall in that they are allowing expected traffic and denying unexpected.
+    \item For now are normally used with SYSTEM\_BUS (block all by default) 
+  \end{itemize}
+  \vfill
+  \begin{alertblock}{Be careful...}
+    probably you will not get any information (timeout error instead of some specific one) if your action will be blocked by policy.
+  \end{alertblock} 
 \end{frame}
 
 \begin{frame}
-
-\begin{block}{Block title}
-This is a block in blue
-\end{block}
-
-\begin{alertblock}{Alert-block title}
-This is a block in red
-\end{alertblock}
-
-\begin{exampleblock}{Example-block title}
-This is a block in green
-\end{exampleblock}
+\begin{center}
+\huge The end :)...
+\end{center}
 \end{frame}
-
-
 
 \end{document}
