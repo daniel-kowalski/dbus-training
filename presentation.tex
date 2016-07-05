@@ -3,7 +3,7 @@
 \usepackage{tabularx}
 \usepackage{tabulary}
 \usetheme{Warsaw}
-\title[Introducion to DBus]{Introducion to DBus}
+\title[Introduction to DBus]{Introduction to DBus}
 \author{Daniel Kowalski}
 \date{}
 
@@ -57,7 +57,7 @@
 \begin{frame}{What is dbus}
   \begin{itemize}
     \item IPC (Inter-Process Communication) and RPC (Remote Procedure Calling) system
-    \item messages based
+    \item message based
     \item high level
     \item centralized (bus) - one central "messages router"
     \item language independent
@@ -139,7 +139,7 @@ Names (sometimes called addresses):
 \begin{frame}{Members types}
   \begin{itemize}
     \item method - is a function called by client on the service side
-    \item signal - is information emitted by service to clients (client will not get signal until it register for it)
+    \item signal - is information emitted by service to clients (client will not get signal until it registers for it)
     \item property - is data field of service (read/write)
   \end{itemize}
 \end{frame}
@@ -154,7 +154,7 @@ A... & is identified by a(n)... & which looks like... & and is chosen by...\\
 \hline
 bus & address & unix:path= /var/run/dbus/system\_bus\_socket & system configuration\\
 \hline
-connection & bus name & :1.34 (unique) or com.example.Audio (well-known) & D-Bus (unique) or the owning program (well-known)\\
+connection & bus name & :1.34 (unique), com.example.Audio (well-known) & D-Bus (unique) or the owning program (well-known)\\
 \hline
 object & path & /com/example/Audio & the owning program\\
 \hline
@@ -247,7 +247,7 @@ h &Unix file descriptor\\
 
 \begin{frame}{Signatures}
   \begin{itemize}
-    \item as - array of strins
+    \item as - array of strings
     \item ii - two integers 32bit
     \item (isb) - stucture of integer, string and bool
     \item a(si) - array of structs with string and int
@@ -303,7 +303,7 @@ destination & a well-known or unique name\\
 \hline
 arg[0, 1, 2, 3, ...] & Any string (match against arguments of message, but only strings)\\
 \hline
-eavesdrop & 'true', 'false' (from BDus 1.5.6 match rule will match message with set 'destination' field only if eavesdrop='true')\\
+eavesdrop & 'true', 'false' (from DBus 1.5.6 match rule will match message with set 'destination' field only if eavesdrop='true')\\
 \hline
       \end{tabulary}
     \end{center}
@@ -319,7 +319,7 @@ eavesdrop & 'true', 'false' (from BDus 1.5.6 match rule will match message with 
   \begin{itemize}
     \item "type='signal',sender='com.example.audio'"
     \item "type='method\_return',destination=':1.34'"
-    \item "type='method\_call','com.example.audio'"
+    \item "type='method\_call',interface='com.example.audio'"
     \item "arg0='qwerty'" - only string aruments can be match against!
   \end{itemize}
   \vfill
@@ -377,7 +377,7 @@ dbus-daemon can start service process on demand (explicit or when first message 
   There is one special service on bus - org.freedesktop.DBus.\\
   It is exposed by dbus-daemon itself.\\Can be used for:\\
   \begin{itemize}
-    \item managing connections - communication with it is necessary for process to which want to use bus (usually hidden from developer by library/bidding)
+    \item managing connections - communication with it is necessary for process to which want to use bus (usually hidden from developer by library/binding)
     \item getting information about bus state - eg. list of names, starting services, etc.
     \item etc.
   \end{itemize}
@@ -395,7 +395,7 @@ dbus-daemon can start service process on demand (explicit or when first message 
 \item StartServiceByName(in  s arg\_0,
                    in  u arg\_1,
                    out u arg\_2);
-\item UpdateActivationEnvironment(in  a{ss} arg\_0);
+\item UpdateActivationEnvironment(in  a\{ss\} arg\_0);
 \item NameHasOwner(in  s arg\_0,
              out b arg\_1);
 \item ListNames(out as arg\_0);
@@ -433,7 +433,7 @@ dbus-daemon can start service process on demand (explicit or when first message 
   \end{itemize}
 \end{frame}
 
-\section{Using and debuging}
+\section{Using and debugging}
 
 \begin{frame}{Basic tools}
   \begin{block}{dbus-send}
